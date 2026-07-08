@@ -1,16 +1,55 @@
-# React + Vite
+# Habits — a local-first habit tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A small, backend-free web app for tracking habits. Everything lives in your
+browser via `localStorage` — no account, no server, no network calls. It is
+installable as a PWA and works offline.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Multiple habits** — each with a name, emoji, color, and optional daily goal.
+- **GitHub-style activity grid** — one contribution heatmap per habit; cell
+  intensity reflects how many times you logged that day (scaled toward your goal
+  when one is set).
+- **One-tap logging** — a big "Log today" button on every habit. You can log a
+  habit **more than once a day**, undo today's logs, or tap any past day to
+  backfill.
+- **Streaks** and today's count shown at a glance.
+- **Mobile-friendly & installable** — responsive layout, large tap targets, and
+  a PWA manifest + service worker so you can add it to your home screen and use
+  it offline.
+- **Light & dark themes** that follow your system preference.
 
-## React Compiler
+## Tech
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- [React 19](https://react.dev/) + [Vite](https://vite.dev/)
+- [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) for the service worker and
+  web app manifest
+- Persistence via the browser `localStorage` API
 
-## Expanding the Oxlint configuration
+## Getting started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+npm install
+npm run dev      # develop at http://localhost:5173
+```
+
+```bash
+npm run build    # production build into dist/
+npm run preview  # preview the built app (service worker only runs in a build)
+npm run lint     # oxlint
+```
+
+## Deployment
+
+Pushing to the default branch publishes the app to GitHub Pages via the workflow
+in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Enable it once
+under **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+## Data & privacy
+
+All data stays on your device in `localStorage` under the key `habit-tracker/v1`.
+Clearing your browser data for the site erases your habits.
+
+---
+
+Created with [Claude](https://claude.com/claude-code) (Anthropic's Claude Code).
