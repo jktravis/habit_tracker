@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { useHabits } from './hooks/useHabits.js'
+import { useTheme } from './hooks/useTheme.js'
 import HabitCard from './components/HabitCard.jsx'
 import HabitForm from './components/HabitForm.jsx'
 import EmptyState from './components/EmptyState.jsx'
+import ThemeToggle from './components/ThemeToggle.jsx'
 
 // Roughly one week-column per 16px of available width, clamped to a sensible range.
 function weeksForWidth(width) {
@@ -23,6 +25,7 @@ function useHeatmapWeeks() {
 
 export default function App() {
   const { habits, addHabit, updateHabit, deleteHabit, logDate, logToday, undoToday } = useHabits()
+  const [theme, setTheme] = useTheme()
   const weeks = useHeatmapWeeks()
   // null = closed; 'new' = create; otherwise the habit object being edited.
   const [form, setForm] = useState(null)
@@ -39,11 +42,14 @@ export default function App() {
         <h1>
           <span className="app-mark" aria-hidden="true">◈</span> Habits
         </h1>
-        {habits.length > 0 && (
-          <button type="button" className="btn primary" onClick={() => setForm('new')}>
-            + New habit
-          </button>
-        )}
+        <div className="app-header-actions">
+          <ThemeToggle theme={theme} onChange={setTheme} />
+          {habits.length > 0 && (
+            <button type="button" className="btn primary" onClick={() => setForm('new')}>
+              + New habit
+            </button>
+          )}
+        </div>
       </header>
 
       <main className="app-main">
