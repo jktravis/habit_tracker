@@ -1,122 +1,87 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useEffect, useState } from 'react'
 import './App.css'
+import { useHabits } from './hooks/useHabits.js'
+import HabitCard from './components/HabitCard.jsx'
+import HabitForm from './components/HabitForm.jsx'
+import EmptyState from './components/EmptyState.jsx'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+// Roughly one week-column per 16px of available width, clamped to a sensible range.
+function weeksForWidth(width) {
+  const usable = Math.min(width, 900) - 120
+  return Math.max(14, Math.min(53, Math.floor(usable / 16)))
 }
 
-export default App
+function useHeatmapWeeks() {
+  const [weeks, setWeeks] = useState(() => weeksForWidth(window.innerWidth))
+  useEffect(() => {
+    const onResize = () => setWeeks(weeksForWidth(window.innerWidth))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return weeks
+}
+
+export default function App() {
+  const { habits, addHabit, updateHabit, deleteHabit, logDate, logToday, undoToday } = useHabits()
+  const weeks = useHeatmapWeeks()
+  // null = closed; 'new' = create; otherwise the habit object being edited.
+  const [form, setForm] = useState(null)
+
+  const handleSave = (data) => {
+    if (form && form !== 'new') updateHabit(form.id, data)
+    else addHabit(data)
+    setForm(null)
+  }
+
+  return (
+    <div className="app">
+      <header className="app-header">
+        <h1>
+          <span className="app-mark" aria-hidden="true">◈</span> Habits
+        </h1>
+        {habits.length > 0 && (
+          <button type="button" className="btn primary" onClick={() => setForm('new')}>
+            + New habit
+          </button>
+        )}
+      </header>
+
+      <main className="app-main">
+        {habits.length === 0 ? (
+          <EmptyState onAdd={() => setForm('new')} />
+        ) : (
+          <div className="habit-list">
+            {habits.map((habit) => (
+              <HabitCard
+                key={habit.id}
+                habit={habit}
+                weeks={weeks}
+                onLogToday={() => logToday(habit.id)}
+                onUndoToday={() => undoToday(habit.id)}
+                onLogDate={(key, delta) => logDate(habit.id, key, delta)}
+                onEdit={() => setForm(habit)}
+                onDelete={() => {
+                  if (confirm(`Delete "${habit.name}"? This can't be undone.`)) {
+                    deleteHabit(habit.id)
+                  }
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+
+      <footer className="app-footer">
+        <p>All data is stored locally in your browser. No account, no server.</p>
+      </footer>
+
+      {form && (
+        <HabitForm
+          habit={form === 'new' ? null : form}
+          onSave={handleSave}
+          onClose={() => setForm(null)}
+        />
+      )}
+    </div>
+  )
+}
