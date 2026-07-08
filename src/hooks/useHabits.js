@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { loadState, saveState } from '../lib/storage.js'
 import { todayKey } from '../lib/date.js'
+import { uid } from '../lib/id.js'
 
 // Default color palette offered in the habit form and auto-assigned to new habits.
 export const PALETTE = [
@@ -29,7 +30,7 @@ export function useHabits() {
     setHabits((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: uid(),
         name: name.trim() || 'Untitled',
         emoji: emoji || '✅',
         color: color || PALETTE[prev.length % PALETTE.length],
